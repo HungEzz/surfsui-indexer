@@ -1,0 +1,16 @@
+                     List of relations
+ Schema |             Name              | Type  |  Owner   
+--------+-------------------------------+-------+----------
+ public | __diesel_schema_migrations    | table | manager1
+ public | cetus_add_liquidity_events    | table | manager1
+ public | cetus_remove_liquidity_events | table | manager1
+ public | cetus_swap_events             | table | manager1
+ public | daily_statistics              | table | manager1
+ public | dapp_interactions             | table | manager1
+ public | dapp_rankings                 | table | manager1
+ public | hourly_statistics             | table | manager1
+ public | liquidity_events              | table | manager1
+ public | swap_events                   | table | manager1
+ public | volume_data                   | table | manager1
+(11 rows)
+

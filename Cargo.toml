@@ -1,0 +1,66 @@
+[package]
+name = "suins-indexer"
+authors = ["Mysten Labs <build@mystenlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+version = "0.1.0"
+
+[workspace]
+members = ["."]
+
+[workspace.dependencies]
+diesel = { version = "2.2.10", features = ["postgres", "serde_json", "chrono", "numeric"] }
+diesel-async = { version = "0.5.0", features = ["postgres", "bb8"] }
+bb8 = "0.8.5"
+anyhow = "1.0"
+async-trait = "0.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.28", features = ["full"] }
+tracing = "0.1"
+chrono = "0.4.41"
+
+[dependencies]
+# Database
+diesel = { workspace = true }
+diesel-async = { workspace = true }
+bb8 = { workspace = true }
+
+# SUI dependencies
+sui_data_ingestion_core = { git = "https://github.com/mystenlabs/sui", package = "sui-data-ingestion-core" }
+sui_types = { git = "https://github.com/mystenlabs/sui", package = "sui-types" }
+mysten_service = { git = "https://github.com/mystenlabs/sui", package = "mysten-service" }
+
+# Core utilities
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }
+
+# Environment and configuration
+dotenvy = "0.15"
+prometheus = "0.13"
+
+# TLS and networking
+rustls = "0.23.26"
+webpki-roots = "0.26.3"
+tokio-postgres-rustls = "0.12.0"
+tokio-postgres = "0.7.12"
+futures-util = "0.3.30"
+
+# Logging
+tracing-subscriber = "0.3.18"
+
+# Development dependencies
+[dev-dependencies]
+tempfile = "3.8"
+
+# Binary configuration
+[[bin]]
+name = "dapp_checkpoint_processor"
+path = "src/bin/dapp_checkpoint_processor.rs"
+ 

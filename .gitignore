@@ -1,0 +1,76 @@
+# Rust specific ignores
+/target/
+**/*.rs.bk
+Cargo.lock
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Debug files
+*.pdb
+
+# Database
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+log/
+
+# Checkpoint data and progress
+/checkpoints/
+/backfill_progress/
+
+# Binary files
+*.bin
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Dependencies
+/vendor/
+
+# Test coverage
+coverage/
+*.lcov
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# Local configuration
+config.local.toml
+config.dev.toml
+
+# Generated documentation
+/doc/
+/docs/generated/
+
+# Build output
+/dist/
+/build/
+/out/
+
+# System Files
+.directory
+Thumbs.db 
