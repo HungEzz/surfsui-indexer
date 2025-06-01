@@ -2,10 +2,10 @@
 
 ## 📋 Overview
 
-The **DApp Ranking Indexer** is a high-performance Rust application that processes Sui blockchain checkpoints to extract and analyze DApp interaction data. It tracks user interactions with various DApps to calculate real-time rankings based on Daily Active Users (DAU).
+The **DApp Ranking Indexer** is a high-performance Rust application that processes Sui blockchain checkpoints to extract and analyze DApp interaction data. It tracks user interactions with various DApps to calculate real-time rankings based on Hourly Active Users (HAU).
 
 Key metrics tracked:
-- 📊 **24-hour Daily Active Users (DAU)** per DApp
+- 📊 **1-hour Hourly Active Users (HAU)** per DApp
 - 🏆 **Real-time DApp Rankings** based on user activity
 - 📱 **DApp Interaction Events** from all transactions
 - 📈 **Historical ranking trends**
@@ -17,7 +17,7 @@ Key metrics tracked:
 - **Database Persistence**: PostgreSQL storage for rankings and checkpoint progress
 - **DApp Mapping**: Human-readable names for popular DApps
 - **Configurable Settings**: Environment-based configuration management
-- **Background Jobs**: Automatic ranking updates every 10 minutes
+- **Background Jobs**: Automatic ranking updates every minute
 - **Memory Efficient**: Automatic cleanup of old interactions to prevent memory growth
 - **Comprehensive Logging**: Detailed interaction tracking and ranking reporting
 
@@ -45,7 +45,7 @@ Key metrics tracked:
 
 2. **DApp Indexer** (`src/dapp_indexer.rs`)
    - Core business logic for extracting DApp interactions
-   - Calculates 24-hour DAU metrics for each DApp
+   - Calculates 1-hour HAU metrics for each DApp
    - Manages interaction storage and cleanup
 
 3. **Configuration Management** (`src/config.rs`)
@@ -126,13 +126,13 @@ BACKFILL_PROGRESS_FILE_PATH=./backfill_progress/backfill_progress
 
 # Update interval for ranking calculation (in seconds)
 # How often the background job updates rankings and saves to database
-# Default: 600 (10 minutes)
-UPDATE_INTERVAL_SECONDS=600
+# Default: 60 (1 minute)
+UPDATE_INTERVAL_SECONDS=60
 
 # Interaction retention period (in hours)
-# How long to keep interactions in memory for 24h calculations
-# Default: 25 (gives buffer over 24h)
-INTERACTION_RETENTION_HOURS=25
+# How long to keep interactions in memory for 1h calculations
+# Default: 2 (gives buffer over 1h)
+INTERACTION_RETENTION_HOURS=2
 
 # Checkpoint batch size
 # How many checkpoints to process before forcing a database update
@@ -175,7 +175,7 @@ USE_DATABASE=true
 ### Expected Output
 
 ```
-🚀 Starting DApp Ranking Indexer (24h DAU)
+🚀 Starting DApp Ranking Indexer (1h HAU)
 📁 Checkpoints dir: ./checkpoints
 💾 Database enabled: true
 📱 Tracking DApp interactions for ranking
@@ -193,12 +193,12 @@ Found 15 DApp interactions
   📱 Pyth: 2 interactions
   📱 Unknown DApp (0xa2f06318): 1 interactions
 
-🏆 Current Top DApps (24h DAU):
-  1. FanTV AI - 1,234 DAU
-  2. Aftermath AMM - 987 DAU
-  3. Suilend - 756 DAU
-  4. 6degrees - 543 DAU
-  5. Pyth - 432 DAU
+🏆 Current Top DApps (1h HAU):
+  1. FanTV AI - 123 HAU
+  2. Aftermath AMM - 98 HAU
+  3. Suilend - 75 HAU
+  4. 6degrees - 54 HAU
+  5. Pyth - 43 HAU
 ------------------------------------
 ```
 
@@ -226,7 +226,7 @@ CREATE TABLE dapp_rankings (
     rank INTEGER NOT NULL,
     package_id VARCHAR NOT NULL,
     dapp_name VARCHAR NOT NULL,
-    dau_24h INTEGER NOT NULL,
+    dau_1h INTEGER NOT NULL,  -- 1-hour Hourly Active Users count
     last_update TIMESTAMP NOT NULL,
     checkpoint_number BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

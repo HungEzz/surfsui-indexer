@@ -44,7 +44,7 @@ export USE_DATABASE=true
 
 # Run the DApp checkpoint processor
 echo "⏳ Starting DApp ranking checkpoint processor..."
-echo "📱 Tracking DApp interactions for 24h DAU ranking..."
+echo "📱 Tracking DApp interactions for 1h HAU ranking..."
 
 if [ "$ENABLE_METRICS" = "true" ]; then
     ./target/release/dapp_checkpoint_processor \

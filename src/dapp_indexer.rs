@@ -4,14 +4,14 @@
 /**
  * DAPP RANKING INDEXER MODULE
  * 
- * This module contains the core logic for ranking DApps on Sui blockchain based on Daily Active Users (DAU).
- * It processes checkpoints to extract DApp interactions, calculates DAU metrics,
+ * This module contains the core logic for ranking DApps on Sui blockchain based on Hourly Active Users (HAU).
+ * It processes checkpoints to extract DApp interactions, calculates HAU metrics,
  * and manages database storage for rankings.
  * 
  * Key components:
  * - DApp interaction extraction from blockchain transactions
- * - Daily Active Users (DAU) calculation
- * - DApp ranking based on 24h DAU
+ * - Hourly Active Users (HAU) calculation
+ * - DApp ranking based on 1h HAU
  * - Database interaction for persistence
  */
 
@@ -31,8 +31,8 @@ use std::time::{Duration, SystemTime};
  */
 #[derive(Clone)]
 pub struct DAppIndexer {
-    pub dapp_interactions: Vec<DAppInteraction>,  // All processed DApp interactions (24h only)
-    pub dapp_rankings: Vec<DAppRanking>,         // Current 24h DApp rankings
+    pub dapp_interactions: Vec<DAppInteraction>,  // All processed DApp interactions (1h only)
+    pub dapp_rankings: Vec<DAppRanking>,         // Current 1h DApp rankings
     pub dapp_names: HashMap<String, (String, String)>,       // package_id -> (dapp_name, dapp_type) mapping
     pub last_processed_checkpoint: u64,           // Last checkpoint number processed
 }
@@ -57,7 +57,6 @@ impl DAppIndexer {
         mapping.insert("0xda12d621169da92ed8af5f6b332b7bec64c840bb49bb3d4206d6739cd76bad14".to_string(), ("FanTV AI".to_string(), "AI".to_string()));
         mapping.insert("0x2cdcc3b1306a49fcd5b8ccded57116ad86ab37a93ba9d91fa1ce06a8d22a21e9".to_string(), ("6degrees".to_string(), "Marketing".to_string()));
         mapping.insert("0xa2f06318d797e3a2ba734069165e164870677f705d95d8a18b6d9aabbd588709".to_string(), ("Aftermath AMM".to_string(), "DEX".to_string()));
-        mapping.insert("0xada81624f2be6abd31f2433dac2642a03414cdb20d494314a4d3d889281fb5e".to_string(), ("Pebble".to_string(), "GameFi".to_string()));
         mapping.insert("0x04e20ddf36af412a4096f9014f4a565af9e812db9a05cc40254846cf6ed0ad91".to_string(), ("Pyth".to_string(), "Infra".to_string()));
         mapping.insert("0x9c12f3aa14a449a0a23c066589e269086f021a98939f21158cfacb16d19787c3".to_string(), ("Momentum".to_string(), "DEX".to_string()));
         mapping.insert("0x7ea6e27ad7af6f3b8671d59df1aaebd7c03dddab893e52a714227b2f4fe91519".to_string(), ("7K Aggregator".to_string(), "Aggregator".to_string()));
@@ -73,10 +72,7 @@ impl DAppIndexer {
         mapping.insert("0x51966dc1d9d3e6d85aed55aa87eb9e78e928b4e74b4844a15ef7e3dfb5af3bae".to_string(), ("Cetus Aggregator".to_string(), "Aggregator".to_string()));
         mapping.insert("0x7cdd26c4aa40c990d5ca780e0919b2de796be9bb41fba461d133bfacb0f677bc".to_string(), ("Cetus Aggregator".to_string(), "Aggregator".to_string()));
         mapping.insert("0x2c68443db9e8c813b194010c11040a3ce59f47e4eb97a2ec805371505dad7459".to_string(), ("Wave".to_string(), "Infra".to_string()));
-        mapping.insert("0x6d264cc3d4b7b81a7e3e47403b335d1d933ceb03dacc4328214f10bf8937a239".to_string(), ("NAVI Lending".to_string(), "Lending".to_string()));
-        mapping.insert("0x8d196820b321bb3c56863b3eb0dd90a49f9eb52e3473373efcebf4388bf04416".to_string(), ("SpringSui".to_string(), "Liquid Staking".to_string()));
-        mapping.insert("0x5a6df33a03a69959065b5e87aecac72d0afff893a1923833a77dcfb0d2f42980".to_string(), ("Metastable".to_string(), "CDP".to_string()));
-        
+        mapping.insert("0x8d196820b321bb3c56863b3eb0dd90a49f9eb52e3473373efcebf4388bf04416".to_string(), ("SpringSui".to_string(), "Liquid Staking".to_string()));        
         mapping
     }
     
@@ -98,6 +94,13 @@ impl DAppIndexer {
         let checkpoint_number = data.checkpoint_summary.sequence_number;
         let checkpoint_timestamp = data.checkpoint_summary.timestamp();
 
+        // Skip checkpoints older than 1 hour to ensure we only process recent data
+        let one_hour_ago = SystemTime::now() - Duration::from_secs(60 * 60);
+        if checkpoint_timestamp < one_hour_ago {
+            // Skip this checkpoint as it's too old for our 1h HAU calculation
+            return all_interactions;
+        }
+
         // Process each transaction in the checkpoint
         for (_tx_index, transaction) in data.transactions.iter().enumerate() {
             // Extract DApp interactions from this transaction
@@ -114,13 +117,13 @@ impl DAppIndexer {
                   checkpoint_number, all_interactions.len());
         }
 
-        // Always prune old interactions and update rankings to ensure 24h window
+        // Always prune old interactions and update rankings to ensure 1h window
         self.prune_old_interactions();
         
         // Update rankings every 10 checkpoints or if we have significant interactions
-        // This ensures rankings stay fresh and reflect recent 24h data
+        // This ensures rankings stay fresh and reflect recent 1h data
         if checkpoint_number % 10 == 0 || all_interactions.len() > 5 {
-            self.update_dapp_rankings_24h();
+            self.update_dapp_rankings_1h();
             
             // Save to database if available
             if let Some(db_manager) = db_manager {
@@ -180,23 +183,23 @@ impl DAppIndexer {
         interactions
     }
 
-    /// Calculate and update 24-hour DApp rankings based on Daily Active Users (DAU)
-    fn update_dapp_rankings_24h(&mut self) {
+    /// Calculate and update 1-hour DApp rankings based on Hourly Active Users (HAU)
+    fn update_dapp_rankings_1h(&mut self) {
         let now = SystemTime::now();
-        let twenty_four_hours_ago = now - Duration::from_secs(24 * 60 * 60);
+        let one_hour_ago = now - Duration::from_secs(60 * 60); // Changed from 24 * 60 * 60 to 60 * 60
 
-        // Count unique users per DApp NAME (not package_id) in the last 24 hours
+        // Count unique users per DApp NAME (not package_id) in the last 1 hour
         // This ensures DApps with multiple package IDs are counted as one unified DApp
         let mut dapp_user_counts: HashMap<String, HashSet<String>> = HashMap::new();
 
-        // Process all DApp interactions from the last 24 hours
+        // Process all DApp interactions from the last 1 hour
         for interaction in &self.dapp_interactions {
-            if interaction.timestamp >= twenty_four_hours_ago {
+            if interaction.timestamp >= one_hour_ago {
                 // Only count interactions for DApps that are in our tracked mapping
                 if let Some((dapp_name, _dapp_type)) = self.dapp_names.get(&interaction.package_id) {
                     // Count unique users by DApp NAME, not package_id
                     // This fixes the issue where DApps with multiple package IDs 
-                    // would have inflated DAU counts
+                    // would have inflated HAU counts
                     dapp_user_counts
                         .entry(dapp_name.clone()) // Use dapp_name as key instead of package_id
                         .or_insert_with(HashSet::new)
@@ -227,24 +230,24 @@ impl DAppIndexer {
                     rank: 0, // Will be set after sorting
                     package_id, // Use first package_id as reference
                     dapp_name,
-                    dau_24h: users.len() as u32,
+                    dau_1h: users.len() as u32, // 1-hour Hourly Active Users count
                     last_update: now,
                     dapp_type,
                 }
             })
             .collect();
 
-        // Sort by DAU (descending) and assign ranks
-        rankings.sort_by(|a, b| b.dau_24h.cmp(&a.dau_24h));
+        // Sort by HAU (descending) and assign ranks
+        rankings.sort_by(|a, b| b.dau_1h.cmp(&a.dau_1h));
         for (index, ranking) in rankings.iter_mut().enumerate() {
             ranking.rank = (index + 1) as u32;
         }
 
         // Log top 5 DApps if we have rankings
         if !rankings.is_empty() {
-            info!("🏆 Top DApps (24h DAU - Fixed Logic):");
+            info!("🏆 Top DApps (1h HAU - Hourly Active Users):");
             for ranking in rankings.iter().take(5) {
-                info!("  {}. {} - {} DAU", ranking.rank, ranking.dapp_name, ranking.dau_24h);
+                info!("  {}. {} - {} HAU", ranking.rank, ranking.dapp_name, ranking.dau_1h);
             }
         }
 
@@ -254,16 +257,16 @@ impl DAppIndexer {
         // to ensure it runs every checkpoint, not just when rankings are updated
     }
 
-    /// Remove interactions older than 24 hours and from untracked DApps to prevent memory growth
+    /// Remove interactions older than 1 hour and from untracked DApps to prevent memory growth
     fn prune_old_interactions(&mut self) {
-        let twenty_four_hours_ago = SystemTime::now() - Duration::from_secs(24 * 60 * 60);
+        let one_hour_ago = SystemTime::now() - Duration::from_secs(60 * 60); // Changed from 24 * 60 * 60 to 60 * 60
         let initial_count = self.dapp_interactions.len();
         
         self.dapp_interactions.retain(|interaction| {
             // Keep only interactions that are:
-            // 1. Within the last 24 hours
+            // 1. Within the last 1 hour
             // 2. From tracked DApps
-            interaction.timestamp >= twenty_four_hours_ago && 
+            interaction.timestamp >= one_hour_ago && 
             self.dapp_names.contains_key(&interaction.package_id)
         });
         
@@ -296,7 +299,7 @@ impl DAppIndexer {
                 rank: record.rank_position as u32,
                 package_id: record.package_id,
                 dapp_name: record.dapp_name,
-                dau_24h: record.dau_24h as u32,
+                dau_1h: record.dau_1h as u32, // 1-hour Hourly Active Users count
                 last_update: SystemTime::now(), // Use current time since we removed last_update from DB
                 dapp_type: record.dapp_type,
             }
@@ -359,7 +362,7 @@ impl DAppIndexer {
 /// Start a background job to update rankings periodically
 pub async fn start_ranking_update_job(indexer: Arc<Mutex<DAppIndexer>>, db_manager: Arc<DatabaseManager>) {
     tokio::spawn(async move {
-        let mut interval = tokio::time::interval(Duration::from_secs(120)); // 2 minutes
+        let mut interval = tokio::time::interval(Duration::from_secs(60)); // Changed from 120 to 60 seconds (1 minute)
         
         loop {
             interval.tick().await;
@@ -370,8 +373,8 @@ pub async fn start_ranking_update_job(indexer: Arc<Mutex<DAppIndexer>>, db_manag
             // Always prune old interactions first
             indexer_guard.prune_old_interactions();
             
-            // Update rankings based on current 24h data
-            indexer_guard.update_dapp_rankings_24h();
+            // Update rankings based on current 1h data
+            indexer_guard.update_dapp_rankings_1h();
             
             // Save to database
             if let Err(err) = indexer_guard.update_data_in_database(&db_manager).await {

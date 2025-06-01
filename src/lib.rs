@@ -4,7 +4,7 @@
 //! DApp Ranking Indexer - A high-performance indexer for Sui blockchain DApp analytics
 //! 
 //! This crate provides indexing capabilities for Sui blockchain events,
-//! specifically focusing on DApp ranking based on Daily Active Users (DAU).
+//! specifically focusing on DApp ranking based on Hourly Active Users (HAU).
 
 // Core modules
 pub mod config;

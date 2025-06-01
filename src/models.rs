@@ -8,7 +8,7 @@ use std::time::SystemTime;
 
 /**
  * DAppInteraction represents a user interaction with a DApp
- * Used for calculating Daily Active Users (DAU) for ranking
+ * Used for calculating Hourly Active Users (HAU) for ranking
  * This is only used in memory, not stored in database
  */
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -28,7 +28,7 @@ pub struct DAppRankingRecord {
     pub rank_position: i32,
     pub package_id: String,
     pub dapp_name: String,
-    pub dau_24h: i32,
+    pub dau_1h: i32,  // 1-hour Hourly Active Users count
     pub dapp_type: String,
 }
 
@@ -39,19 +39,19 @@ pub struct NewDAppRankingRecord {
     pub rank_position: i32,
     pub package_id: String,
     pub dapp_name: String,
-    pub dau_24h: i32,
+    pub dau_1h: i32,  // 1-hour Hourly Active Users count
     pub dapp_type: String,
 }
 
 /**
- * DAppRanking represents the 24h ranking of a DApp
+ * DAppRanking represents the 1h ranking of a DApp based on Hourly Active Users
  */
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DAppRanking {
     pub rank: u32,                  // Current ranking position
     pub package_id: String,         // DApp package identifier
     pub dapp_name: String,          // Human-readable DApp name
-    pub dau_24h: u32,              // 24h Daily Active Users count
+    pub dau_1h: u32,               // 1-hour Hourly Active Users count
     pub last_update: SystemTime,    // Last time ranking was calculated
     pub dapp_type: String,          // DApp category/type
 }

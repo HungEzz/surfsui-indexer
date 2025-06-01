@@ -129,13 +129,13 @@ impl DatabaseManager {
                     ranking.rank,
                     ranking.package_id.replace("'", "''"), // Escape single quotes
                     ranking.dapp_name.replace("'", "''"),  // Escape single quotes
-                    ranking.dau_24h,
+                    ranking.dau_1h,
                     ranking.dapp_type.replace("'", "''")   // Escape single quotes
                 )
             }).collect();
 
             let insert_query = format!(
-                "INSERT INTO dapp_rankings (rank_position, package_id, dapp_name, dau_24h, dapp_type) VALUES {}",
+                "INSERT INTO dapp_rankings (rank_position, package_id, dapp_name, dau_1h, dapp_type) VALUES {}",
                 values.join(", ")
             );
 

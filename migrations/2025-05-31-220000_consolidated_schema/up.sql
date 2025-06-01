@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS liquidity_events (
 CREATE TABLE IF NOT EXISTS dapp_rankings (
     package_id VARCHAR NOT NULL,
     dapp_name VARCHAR,
-    dau_24h INTEGER NOT NULL DEFAULT 0,
+    dau_1h INTEGER NOT NULL DEFAULT 0, -- 1-hour Hourly Active Users count
     total_interactions BIGINT NOT NULL DEFAULT 0,
     first_seen_timestamp TIMESTAMP,
     dapp_type VARCHAR NOT NULL DEFAULT 'Unknown',

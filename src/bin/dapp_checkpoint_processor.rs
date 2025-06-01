@@ -5,13 +5,13 @@
  * DAPP RANKING CHECKPOINT PROCESSOR
  * 
  * This binary is the main entry point for processing Sui blockchain checkpoints
- * to extract and index DApp interaction data for ranking based on Daily Active Users (DAU).
+ * to extract and index DApp interaction data for ranking based on Hourly Active Users (HAU).
  * 
  * Key functionalities:
  * - Processes Sui blockchain checkpoints sequentially
  * - Extracts DApp interactions from all events
- * - Calculates 24h DAU metrics for each DApp
- * - Ranks DApps based on their DAU
+ * - Calculates 1h HAU metrics for each DApp
+ * - Ranks DApps based on their HAU
  * - Stores data in PostgreSQL database
  * - Provides real-time monitoring via logging
  */
@@ -108,12 +108,12 @@ impl Worker for DAppIndexerWorker {
             // Display current DApp rankings
             let rankings = indexer.get_dapp_rankings();
             if !rankings.is_empty() {
-                info!("🏆 Current Top DApps (24h DAU):");
+                info!("🏆 Current Top DApps (1h HAU):");
                 for (idx, ranking) in rankings.iter().take(10).enumerate() {
-                    info!("  {}. {} - {} DAU", 
+                    info!("  {}. {} - {} HAU", 
                         idx + 1, 
                         ranking.dapp_name, 
-                        ranking.dau_24h
+                        ranking.dau_1h
                     );
                 }
             }
@@ -172,7 +172,7 @@ async fn main() -> Result<()> {
         .unwrap_or(true);
 
     // Log startup information
-    info!("🚀 Starting DApp Ranking Indexer (24h DAU)"); 
+    info!("🚀 Starting DApp Ranking Indexer (1h HAU)"); 
     info!("📁 Checkpoints dir: {}", checkpoints_dir);
     info!("💾 Database enabled: {}", use_database);
     info!("📱 Tracking DApp interactions for ranking");
@@ -209,9 +209,9 @@ async fn main() -> Result<()> {
                 // Display top 5 DApps
                 let rankings = indexer_locked.get_dapp_rankings();
                 if !rankings.is_empty() {
-                    info!("🏆 Current Top DApps (24h DAU):");
+                    info!("🏆 Current Top DApps (1h HAU):");
                     for (idx, ranking) in rankings.iter().take(5).enumerate() {
-                        info!("  {}. {} - {} DAU", idx + 1, ranking.dapp_name, ranking.dau_24h);
+                        info!("  {}. {} - {} HAU", idx + 1, ranking.dapp_name, ranking.dau_1h);
                     }
                 } else {
                     info!("ℹ️ No existing DApp rankings found in database");
