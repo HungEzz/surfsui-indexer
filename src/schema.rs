@@ -50,6 +50,7 @@ diesel::table! {
         dapp_name -> Varchar,
         dau_1h -> Int4,
         dapp_type -> Varchar,
+        last_update -> Nullable<Timestamp>,
     }
 }
 

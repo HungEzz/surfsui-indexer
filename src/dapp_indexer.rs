@@ -295,12 +295,21 @@ impl DAppIndexer {
         let ranking_records = db_manager.get_dapp_rankings().await?;
         
         self.dapp_rankings = ranking_records.into_iter().map(|record| {
+            // Convert database NaiveDateTime to SystemTime, fallback to now if None
+            let last_update = record.last_update
+                .map(|naive_dt| {
+                    // Convert NaiveDateTime to SystemTime
+                    let timestamp = naive_dt.and_utc().timestamp() as u64;
+                    SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(timestamp)
+                })
+                .unwrap_or_else(SystemTime::now);
+                
             DAppRanking {
                 rank: record.rank_position as u32,
                 package_id: record.package_id,
                 dapp_name: record.dapp_name,
                 dau_1h: record.dau_1h as u32, // 1-hour Hourly Active Users count
-                last_update: SystemTime::now(), // Use current time since we removed last_update from DB
+                last_update, // Use actual timestamp from database
                 dapp_type: record.dapp_type,
             }
         }).collect();

@@ -5,6 +5,7 @@ use crate::schema::dapp_rankings;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::time::SystemTime;
+use chrono::{NaiveDateTime};
 
 /**
  * DAppInteraction represents a user interaction with a DApp
@@ -30,6 +31,7 @@ pub struct DAppRankingRecord {
     pub dapp_name: String,
     pub dau_1h: i32,  // 1-hour Hourly Active Users count
     pub dapp_type: String,
+    pub last_update: Option<NaiveDateTime>,
 }
 
 #[derive(Insertable, AsChangeset, Debug)]
@@ -41,6 +43,7 @@ pub struct NewDAppRankingRecord {
     pub dapp_name: String,
     pub dau_1h: i32,  // 1-hour Hourly Active Users count
     pub dapp_type: String,
+    pub last_update: Option<NaiveDateTime>,
 }
 
 /**

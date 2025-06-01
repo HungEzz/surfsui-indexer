@@ -33,6 +33,7 @@ impl DatabaseManager {
         let mut conn = self.get_connection().await?;
         
         let rankings = dapp_rankings::table
+            .select(DAppRankingRecord::as_select())
             .order(dapp_rankings::rank_position.asc())
             .limit(limit)
             .load::<DAppRankingRecord>(&mut conn)
@@ -45,6 +46,7 @@ impl DatabaseManager {
         let mut conn = self.get_connection().await?;
         
         let rankings = dapp_rankings::table
+            .select(DAppRankingRecord::as_select())
             .order(dapp_rankings::rank_position.asc())
             .load::<DAppRankingRecord>(&mut conn)
             .await?;
@@ -125,7 +127,7 @@ impl DatabaseManager {
         if !rankings.is_empty() {
             let values: Vec<String> = rankings.iter().map(|ranking| {
                 format!(
-                    "({}, '{}', '{}', {}, '{}')",
+                    "({}, '{}', '{}', {}, '{}', NOW())",
                     ranking.rank,
                     ranking.package_id.replace("'", "''"), // Escape single quotes
                     ranking.dapp_name.replace("'", "''"),  // Escape single quotes
@@ -135,7 +137,7 @@ impl DatabaseManager {
             }).collect();
 
             let insert_query = format!(
-                "INSERT INTO dapp_rankings (rank_position, package_id, dapp_name, dau_1h, dapp_type) VALUES {}",
+                "INSERT INTO dapp_rankings (rank_position, package_id, dapp_name, dau_1h, dapp_type, last_update) VALUES {}",
                 values.join(", ")
             );
 
